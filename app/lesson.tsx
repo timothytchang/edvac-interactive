@@ -567,6 +567,18 @@ export default function Home() {
           </div>
           <details className="instruction-key-panel">
             <summary>Register definitions and instruction reference</summary>
+            <p>
+              <strong>Units:</strong> CA = central arithmetic; CC = central
+              control; M = memory; I = input; O = output; R = recording medium.
+              PC = program counter, which holds the next instruction address.
+            </p>
+            <p>
+              <strong>Registers:</strong> ICA = central arithmetic input
+              (first); JCA = central arithmetic input (second); OCA = central
+              arithmetic output. In the book’s notation, CA is a subscript:
+              I<sub>CA</sub>, J<sub>CA</sub>, and O<sub>CA</sub>. J labels the
+              second input; it is not an abbreviation for another word.
+            </p>
             <p className="register-intro">
               ICA, JCA, and OCA are registers: small storage circuits inside the
               arithmetic organ. READ places a value in ICA and shifts its
