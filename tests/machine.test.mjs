@@ -88,3 +88,11 @@ test('reject invalid initial inputs', () => {
   for (const values of [[100, 0, 0], [NaN, 0, 0], [1.5, 0, 0], []])
     assert.throws(() => createMachine(values));
 });
+
+test('omitting WRITE runs but loses the intended subtotal', () => {
+  const s = createMachine();
+  s.memory[3] = { kind: 'instruction', value: { op: 'JMP', address: 4 } };
+  const result = finish(s);
+  assert.equal(result.memory[17].value, 4);
+  assert.equal(result.output, 8);
+});

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useReducer } from 'react';
 import { flushSync } from 'react-dom';
 import {
   ArrowRight,
@@ -8,7 +8,7 @@ import {
   RotateCcw,
   ChevronRight,
   ArrowDown,
-  Check,
+  StepBack,
   BookOpen,
   StepForward,
 } from 'lucide-react';
@@ -22,6 +22,8 @@ import {
   names,
   type Op,
 } from '@/lib/machine';
+import { playbackReducer } from '@/lib/playback';
+import { InstructionFlow } from './instruction-flow';
 const lessons = [
   'Meet the machine',
   'Follow an instruction',
@@ -63,20 +65,24 @@ const organs = [
 export default function Home() {
   const [lesson, setLesson] = useState('0'),
     [organ, setOrgan] = useState(1),
-    [m, setM] = useState(() => createMachine()),
     [running, setRunning] = useState(false),
     [selected, setSelected] = useState(0),
     [variant, setVariant] = useState('sum'),
     [values, setValues] = useState([3, 4, 2]),
     [loadedValues, setLoadedValues] = useState([3, 4, 2]),
-    [guess, setGuess] = useState(''),
     [feedback, setFeedback] = useState(''),
     [position, setPosition] = useState(0),
     [target, setTarget] = useState(3),
     [pulseRunning, setPulseRunning] = useState(false);
+  const [playback, dispatch] = useReducer(playbackReducer, undefined, () => ({
+    current: createMachine(),
+    past: [],
+  }));
+  const m = playback.current;
+  const setM = (machine: typeof m) => dispatch({ type: 'load', machine });
   useEffect(() => {
     if (!running || m.halted) return;
-    const t = setTimeout(() => setM((s) => stepMachine(s)), 1150);
+    const t = setTimeout(() => dispatch({ type: 'next' }), 1150);
     return () => clearTimeout(t);
   }, [running, m]);
   useEffect(() => {
@@ -174,7 +180,7 @@ export default function Home() {
         flushSync(() => {
           setRunning(false);
           setLesson('1');
-          setM(next);
+          dispatch({ type: 'next', count: v.count as number });
         });
         return {
           pc: next.pc,
@@ -194,14 +200,11 @@ export default function Home() {
   const symbol = (op: Op) => (op === 'MUL' ? '×' : op === 'SUB' ? '−' : '+');
   const calculation =
     first.kind === 'instruction' && second.kind === 'instruction'
-      ? first.value.op === 'JMP'
-        ? `b ${symbol(second.value.op)} c · subtotal skipped`
+      ? first.value.op === 'JMP' ||
+        (m.memory[3].kind === 'instruction' && m.memory[3].value.op === 'JMP')
+        ? `b ${symbol(second.value.op)} c · subtotal not used`
         : `(a ${symbol(first.value.op)} b) ${symbol(second.value.op)} c`
       : 'the loaded program';
-  const expected =
-    variant === 'sum'
-      ? (values[0] + values[1]) * values[2]
-      : values[0] * values[1] + values[2];
   return (
     <main>
       <header className="masthead">
@@ -232,7 +235,9 @@ export default function Home() {
         <TabsList className="lesson-nav">
           {lessons.map((l, i) => (
             <TabsTrigger value={String(i)} key={l} className="lesson-tab">
-              <span className="lesson-index">0{i + 1}</span>
+              <span className="lesson-index">
+                {['I', 'II', 'III', 'IV'][i]}
+              </span>
               {l}
             </TabsTrigger>
           ))}
@@ -240,7 +245,7 @@ export default function Home() {
         <TabsContent value="0">
           <section className="opening-grid">
             <div className="lesson-copy">
-              <p className="eyebrow">01 / LOGICAL ORGANIZATION</p>
+              <p className="eyebrow">LOGICAL ORGANIZATION</p>
               <h2>The stored program</h2>
               <p>
                 Programmers configured the original ENIAC through cable
@@ -341,7 +346,6 @@ export default function Home() {
           </section>
           <section className="concept-strip">
             <div>
-              <span>01</span>
               <h3>EDVAC hardware paradigm</h3>
               <p>
                 The proposed hardware combined electronic computation with a
@@ -349,7 +353,6 @@ export default function Home() {
               </p>
             </div>
             <div>
-              <span>02</span>
               <h3>Von Neumann architecture paradigm</h3>
               <p>
                 The logical design centralized arithmetic and control and
@@ -357,7 +360,6 @@ export default function Home() {
               </p>
             </div>
             <div>
-              <span>03</span>
               <h3>Modern code paradigm</h3>
               <p>
                 Instruction codes specified operations and their operands. The
@@ -370,12 +372,14 @@ export default function Home() {
         <TabsContent value="1">
           <div className="workbench-heading">
             <div>
-              <p className="eyebrow">02 / INSTRUCTION EXECUTION</p>
+              <p className="eyebrow">INSTRUCTION EXECUTION</p>
               <h2>Fetch, decode, and execute</h2>
               <p>
                 Calculate <strong>{calculation}</strong> with a ={' '}
                 {loadedValues[0]}, b = {loadedValues[1]}, c = {loadedValues[2]}.
-                Use <strong>Step</strong> to make one movement at a time.
+                Use <strong>Next step</strong> to fetch, decode, or execute.{' '}
+                <strong>Previous step</strong> restores the preceding state so
+                you can compare what changed.
               </p>
               <p className="register-intro">
                 ICA, JCA, and OCA are registers: small storage circuits inside
@@ -388,15 +392,26 @@ export default function Home() {
           </div>
           <div className="controls">
             <Button
+              variant="outline"
+              disabled={!playback.past.length}
+              onClick={() => {
+                setRunning(false);
+                dispatch({ type: 'previous' });
+              }}
+            >
+              <StepBack size={17} />
+              Previous step
+            </Button>
+            <Button
               className="primary"
               disabled={m.halted}
               onClick={() => {
                 setRunning(false);
-                setM((s) => stepMachine(s));
+                dispatch({ type: 'next' });
               }}
             >
               <StepForward size={17} />
-              Step
+              Next step
             </Button>
             <Button
               variant="outline"
@@ -421,6 +436,7 @@ export default function Home() {
               <span> / {m.ticks} movements</span>
             </span>
           </div>
+          <InstructionFlow machine={m} lastStage={lastStage} />
           <div className="machine-grid">
             <section className="memory-panel">
               <div className="panel-top">
@@ -547,11 +563,6 @@ export default function Home() {
             </section>
             <aside className="explanation-panel">
               <span className="eyebrow">Current operation</span>
-              <div className="step-number">
-                {m.halted
-                  ? '■'
-                  : String(Math.max(0, lastStage) + 1).padStart(2, '0')}
-              </div>
               <h3>
                 {m.error
                   ? 'An invalid operation'
@@ -613,7 +624,7 @@ export default function Home() {
         <TabsContent value="2">
           <section className="experiment-grid">
             <div className="lesson-copy">
-              <p className="eyebrow">03 / PROGRAM MODIFICATION</p>
+              <p className="eyebrow">PROGRAM MODIFICATION</p>
               <h2>Program and input changes</h2>
               <p>
                 Changing the input numbers preserves the sequence of operations.
@@ -672,48 +683,64 @@ export default function Home() {
               </Button>
             </div>
             <div className="experiment-card">
-              <span className="eyebrow">OUTPUT PREDICTION</span>
-              <h3>Expected result</h3>
+              <span className="eyebrow">PROGRAMMING EXERCISE</span>
+              <h3>Keeping a result for later instructions</h3>
               <p>
-                What should the machine produce for{' '}
-                <strong>
-                  {variant === 'sum'
-                    ? `(${values[0]} + ${values[1]}) × ${values[2]}`
-                    : `${values[0]} × ${values[1]} + ${values[2]}`}
-                </strong>
-                ?
+                In the default program, ADD at address 02 leaves the sum in OCA.
+                WRITE 17 saves it, and READ 17 then loads it for the
+                multiplication. Suppose you remove WRITE 17 but keep READ 17.
+                What happens?
               </p>
-              <label className="prediction-label" htmlFor="prediction">
-                Your prediction
-              </label>
-              <div className="prediction">
-                <input
-                  id="prediction"
-                  type="number"
-                  value={guess}
-                  onChange={(e) => {
-                    setGuess(e.target.value);
-                    setFeedback('');
-                  }}
-                  placeholder="Enter a number"
-                />
-                <Button
-                  className="primary"
-                  onClick={() =>
-                    setFeedback(
-                      guess.trim() === ''
-                        ? 'Enter a prediction first.'
-                        : Number(guess) === expected
-                          ? 'Correct. Now watch how the machine gets there.'
-                          : 'Try the operation inside the parentheses first. For a × b + c, multiply before adding.',
-                    )
-                  }
-                >
-                  Check <Check size={16} />
-                </Button>
+              <div className="concept-answers">
+                {[
+                  [
+                    'register',
+                    'READ 17 automatically uses the latest result in OCA.',
+                    'READ uses the addressed memory cell, not OCA. Arithmetic and memory are separate: a WRITE is what connects the new result to that cell.',
+                  ],
+                  [
+                    'memory',
+                    'READ 17 loads the original b, so the multiplication uses b and c.',
+                    'Correct. ADD changes OCA, but address 17 still holds b. The later READ replaces ICA with b; the multiplication therefore uses b and c. A stored result persists only where an instruction actually writes it.',
+                  ],
+                  [
+                    'stop',
+                    'The machine stops because the subtotal was never saved.',
+                    'The cell still holds a valid number, so execution continues with the wrong value. This is a logic error: a program can run successfully while computing something you did not intend.',
+                  ],
+                ].map(([key, label, explanation]) => (
+                  <Button
+                    key={key}
+                    variant="outline"
+                    onClick={() => setFeedback(explanation)}
+                  >
+                    {label}
+                  </Button>
+                ))}
               </div>
               <p className="feedback" aria-live="polite">
                 {feedback}
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const n = createMachine(values, 'sum');
+                  n.memory[3] = {
+                    kind: 'instruction',
+                    value: { op: 'JMP', address: 4 },
+                  };
+                  setM(n);
+                  setLoadedValues([...values]);
+                  setSelected(17);
+                  changeLesson('1');
+                }}
+              >
+                Trace without the write <ArrowRight size={17} />
+              </Button>
+              <p className="panel-note">
+                This experiment replaces WRITE 17 with JMP 04, leaving the other
+                addresses unchanged. Compare OCA and memory address 17 as you
+                step.
               </p>
               <hr />
               <h3>Arithmetic instruction</h3>
@@ -774,7 +801,7 @@ export default function Home() {
         <TabsContent value="3">
           <section className="delay-section">
             <div className="lesson-copy">
-              <p className="eyebrow">04 / PHYSICAL STORAGE</p>
+              <p className="eyebrow">PHYSICAL STORAGE</p>
               <h2>Delay-line memory</h2>
               <p>
                 The later built EDVAC used mercury acoustic delay lines.

@@ -10,7 +10,7 @@
     "build": "vite build --config vite.static.config.ts",
     "lint": "oxlint",
     "format": "oxfmt",
-    "test": "node --experimental-strip-types --test tests/machine.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "prepare-pages": "node scripts/prepare-pages.mjs"
   },
   "dependencies": {

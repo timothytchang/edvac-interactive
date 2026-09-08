@@ -1193,3 +1193,127 @@ footer p {
 .workbench-heading {
   align-items: flex-start;
 }
+
+/* Keep the program context alongside the state being inspected. */
+.flow-context {
+  margin: 0 0 24px;
+  padding: 24px;
+  border: 1px solid var(--line, #d7d2c9);
+  border-radius: 12px;
+  background: #faf9f5;
+}
+.flow-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: start;
+}
+.flow-heading h3 {
+  font: 27px var(--serif);
+  margin: 0 0 8px;
+}
+.flow-heading p {
+  max-width: 65ch;
+  line-height: 1.6;
+  margin: 0;
+}
+.flow-current {
+  font: 13px var(--code);
+  min-width: 150px;
+}
+.flow-map {
+  display: block;
+  width: 100%;
+  max-width: 920px;
+  margin: 24px auto 12px;
+}
+.flow-map text {
+  font: 13px var(--sans);
+  fill: #555b54;
+}
+.flow-map .flow-node-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+.flow-node rect {
+  fill: #fff;
+  stroke: #c8c9bf;
+  stroke-width: 1.5;
+}
+.flow-node.active rect {
+  fill: #e6eedc;
+  stroke: #52743d;
+  stroke-width: 2;
+}
+.flow-edge {
+  fill: none;
+  stroke: #b7b9b0;
+  stroke-width: 2;
+}
+.flow-edge.control {
+  stroke-dasharray: 4 5;
+}
+.flow-edge.active {
+  stroke: #52743d;
+  stroke-width: 3.5;
+}
+.flow-route {
+  font-size: 17px;
+  line-height: 1.6;
+  border-left: 3px solid #52743d;
+  padding-left: 15px;
+}
+.flow-legend {
+  color: #65685f;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+.concept-answers {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0;
+}
+.concept-answers button {
+  height: auto;
+  white-space: normal;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 14px;
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .flow-heading {
+    display: block;
+  }
+  .flow-current {
+    display: block;
+    margin-top: 12px;
+  }
+  .flow-context {
+    padding: 16px;
+  }
+  .flow-map {
+    min-width: 650px;
+  }
+  .flow-context {
+    overflow-x: auto;
+  }
+  .controls {
+    flex-wrap: wrap;
+  }
+}
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px 0;
+  background: var(--paper);
+}
+.flow-scroll {
+  overflow-x: auto;
+}
+.flow-context {
+  overflow-x: visible;
+  min-width: 0;
+}
