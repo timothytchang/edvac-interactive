@@ -1140,3 +1140,12 @@ footer p {
     font-size: 13px;
   }
 }
+/* The Tabs primitive emits data-orientation; own the page layout explicitly. */
+.lessons { display: block; width: 100%; min-width: 0; }
+.lessons > [role='tabpanel'] { width: 100%; min-width: 0; }
+.opening-grid { grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr); }
+@media (max-width: 1000px) {
+ .opening-grid, .experiment-grid { grid-template-columns: minmax(0, 1fr); }
+ .blueprint, .experiment-card { margin-top: 28px; }
+ .lesson-copy { max-width: 720px; }
+}
