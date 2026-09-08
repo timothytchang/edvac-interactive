@@ -67,6 +67,7 @@ export default function Home() {
     [organ, setOrgan] = useState(1),
     [running, setRunning] = useState(false),
     [selected, setSelected] = useState(0),
+    [showUnused, setShowUnused] = useState(false),
     [variant, setVariant] = useState('sum'),
     [values, setValues] = useState([3, 4, 2]),
     [loadedValues, setLoadedValues] = useState([3, 4, 2]),
@@ -381,12 +382,6 @@ export default function Home() {
                 <strong>Previous step</strong> restores the preceding state so
                 you can compare what changed.
               </p>
-              <p className="register-intro">
-                ICA, JCA, and OCA are registers: small storage circuits inside
-                the arithmetic organ. READ places a value in ICA and shifts its
-                previous value into JCA. Arithmetic writes its result to OCA; a
-                separate WRITE instruction copies that result into memory.
-              </p>
             </div>
             <span className="model-label">FIRST DRAFT · TEACHING MODEL</span>
           </div>
@@ -436,8 +431,8 @@ export default function Home() {
               <span> / {m.ticks} movements</span>
             </span>
           </div>
-          <InstructionFlow machine={m} lastStage={lastStage} />
-          <div className="machine-grid">
+          <div className="execution-workbench">
+            <InstructionFlow machine={m} lastStage={lastStage} />
             <section className="memory-panel">
               <div className="panel-top">
                 <h3>
@@ -455,114 +450,76 @@ export default function Home() {
                   Number
                 </span>
               </div>
+              <label className="unused-toggle">
+                <input
+                  type="checkbox"
+                  checked={showUnused}
+                  onChange={(e) => setShowUnused(e.target.checked)}
+                />{' '}
+                Show unused addresses
+              </label>
               <div className="memory-list">
-                {m.memory.map((c, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setSelected(i)}
-                    className={
-                      'memory-row ' +
-                      (c.kind === 'instruction' ? 'is-instruction ' : '') +
-                      (m.active.includes(i) ? 'lit ' : '') +
-                      (selected === i ? 'selected' : '')
-                    }
-                    aria-label={`Address ${i}: ${c.kind === 'number' ? c.value : textInstruction(c.value)}`}
-                  >
-                    <span className="address">
-                      {String(i).padStart(2, '0')}
-                    </span>
-                    <span className="cell-value">
-                      {c.kind === 'instruction'
-                        ? textInstruction(c.value)
-                        : c.value}
-                    </span>
-                    <span className="cell-role">
-                      {i === m.pc
-                        ? '← next'
-                        : names[i]
-                          ? names[i]
-                          : c.kind === 'instruction'
-                            ? 'order'
-                            : '—'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </section>
-            <section className="processor-panel">
-              <div className="control-card">
-                <div className="panel-top">
-                  <h3>
-                    <span className="organ-letter">CC</span>Central control
-                  </h3>
-                  <span>directs</span>
-                </div>
-                <div className="address-display">
-                  <span>PROGRAM COUNTER · NEXT ADDRESS</span>
-                  <strong>{String(m.pc).padStart(2, '0')}</strong>
-                </div>
-                <div className="instruction-display">
-                  <span className="tiny-title">CURRENT INSTRUCTION</span>
-                  <strong>
-                    {ir ? textInstruction(ir) : 'Waiting for fetch'}
-                  </strong>
-                </div>
-                <div className="stage-track">
-                  {stages.map((s, i) => (
-                    <span className={lastStage === i ? 'current' : ''} key={s}>
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="flow-link">
-                <ArrowDown size={21} />
-                <span>
-                  {lastStage === 2
-                    ? 'execute the decoded instruction'
-                    : 'control directs the operation'}
-                </span>
-              </div>
-              <div
-                className={
-                  'arithmetic-card ' + (lastStage === 2 ? 'illuminated' : '')
-                }
-              >
-                <div className="panel-top">
-                  <h3>
-                    <span className="organ-letter">CA</span>Central arithmetic
-                  </h3>
-                  <span>registers hold values</span>
-                </div>
-                <div className="arithmetic-values">
-                  <div>
-                    <span>JCA · earlier input</span>
-                    <strong>{m.right ?? '—'}</strong>
-                  </div>
-                  <div>
-                    <span>ICA · latest input</span>
-                    <strong>{m.left ?? '—'}</strong>
-                  </div>
-                  <div>
-                    <span>OCA · result</span>
-                    <strong className="result">{m.result ?? '—'}</strong>
-                  </div>
-                </div>
-              </div>
-              <div className="output-card">
-                <span>
-                  <span className="organ-letter">O</span>Output
-                </span>
-                <strong>{m.output ?? '—'}</strong>
-                <small>
-                  {m.output === null
-                    ? 'Nothing sent yet'
-                    : 'Delivered outside the machine'}
-                </small>
+                {m.memory.map(
+                  (c, i) =>
+                    (showUnused || c.kind === 'instruction' || names[i]) && (
+                      <button
+                        key={i}
+                        onClick={() => setSelected(i)}
+                        className={
+                          'memory-row ' +
+                          (c.kind === 'instruction' ? 'is-instruction ' : '') +
+                          (m.active.includes(i) ? 'lit ' : '') +
+                          (selected === i ? 'selected' : '')
+                        }
+                        aria-label={`Address ${i}: ${c.kind === 'number' ? c.value : textInstruction(c.value)}`}
+                      >
+                        <span className="address">
+                          {String(i).padStart(2, '0')}
+                        </span>
+                        <span className="cell-value">
+                          {c.kind === 'instruction'
+                            ? textInstruction(c.value)
+                            : c.value}
+                        </span>
+                        <span className="cell-role">
+                          {i === m.pc
+                            ? '← next'
+                            : names[i]
+                              ? names[i]
+                              : c.kind === 'instruction'
+                                ? 'order'
+                                : '—'}
+                        </span>
+                      </button>
+                    ),
+                )}
               </div>
             </section>
             <aside className="explanation-panel">
-              <span className="eyebrow">Current operation</span>
+              <div className="execution-instruction">
+                <span>
+                  {m.irAddress === null
+                    ? 'Ready'
+                    : 'Instruction at ' + String(m.irAddress).padStart(2, '0')}
+                </span>
+                <strong>
+                  {ir ? textInstruction(ir) : 'Waiting for fetch'}
+                </strong>
+              </div>
+              <div className="compact-counter">
+                Next fetch address{' '}
+                <strong>{String(m.pc).padStart(2, '0')}</strong>
+              </div>
+              <div className="stage-track">
+                {stages.map((stage, i) => (
+                  <span
+                    key={stage}
+                    className={lastStage === i ? 'current' : ''}
+                  >
+                    {stage}
+                  </span>
+                ))}
+              </div>
               <h3>
                 {m.error
                   ? 'An invalid operation'
@@ -575,28 +532,32 @@ export default function Home() {
               <p className="live-explanation" aria-live="polite">
                 {m.message}
               </p>
-              <hr />
-              <span className="tiny-title">
-                SELECTED ADDRESS · {String(selected).padStart(2, '0')}
-              </span>
-              <h4>
-                {cell.kind === 'instruction'
-                  ? 'A coded instruction'
-                  : 'A stored number'}
-              </h4>
-              <p>
-                {cell.kind === 'instruction'
-                  ? cell.value.op === 'HALT'
-                    ? 'HALT is our teaching command for stopping.'
-                    : cell.value.op === 'OUT'
-                      ? 'OUT is our teaching command for sending a stored value to output.'
-                      : 'The operation code tells control what to do. READ and WRITE also carry an address telling it where to access memory.'
-                  : 'This is a value used or produced by the calculation. An address tells the machine where to find it.'}
-              </p>
-              <p className="subtle">
-                Colors are teaching annotations. Real memory stores bit
-                patterns, not these labels.
-              </p>
+              <details className="address-details">
+                <summary>
+                  Inspect address {String(selected).padStart(2, '0')}
+                </summary>
+                <span className="tiny-title">
+                  SELECTED ADDRESS · {String(selected).padStart(2, '0')}
+                </span>
+                <h4>
+                  {cell.kind === 'instruction'
+                    ? 'A coded instruction'
+                    : 'A stored number'}
+                </h4>
+                <p>
+                  {cell.kind === 'instruction'
+                    ? cell.value.op === 'HALT'
+                      ? 'HALT is our teaching command for stopping.'
+                      : cell.value.op === 'OUT'
+                        ? 'OUT is our teaching command for sending a stored value to output.'
+                        : 'The operation code tells control what to do. READ and WRITE also carry an address telling it where to access memory.'
+                    : 'This is a value used or produced by the calculation. An address tells the machine where to find it.'}
+                </p>
+                <p className="subtle">
+                  Colors are teaching annotations. Real memory stores bit
+                  patterns, not these labels.
+                </p>
+              </details>
               {m.halted && !m.error && (
                 <Button className="primary" onClick={() => changeLesson('2')}>
                   Change the program <ArrowRight size={16} />
@@ -604,7 +565,14 @@ export default function Home() {
               )}
             </aside>
           </div>
-          <div className="instruction-key-panel">
+          <details className="instruction-key-panel">
+            <summary>Register definitions and instruction reference</summary>
+            <p className="register-intro">
+              ICA, JCA, and OCA are registers: small storage circuits inside the
+              arithmetic organ. READ places a value in ICA and shifts its
+              previous value into JCA. Arithmetic writes its result to OCA; a
+              separate WRITE instruction copies that result into memory.
+            </p>
             <p>
               <strong>Four instructions to add and save:</strong>{' '}
               <code>READ 16 → READ 17 → ADD → WRITE 17</code>
@@ -619,7 +587,7 @@ export default function Home() {
               already copied into control still executes. The counter identifies
               where the <em>following</em> fetch will look.
             </p>
-          </div>
+          </details>
         </TabsContent>
         <TabsContent value="2">
           <section className="experiment-grid">

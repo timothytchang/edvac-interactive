@@ -1,4 +1,4 @@
-import { textInstruction, type Machine } from '@/lib/machine';
+import { type Machine } from '@/lib/machine';
 
 export function InstructionFlow({
   machine: m,
@@ -7,179 +7,138 @@ export function InstructionFlow({
   machine: Machine;
   lastStage: number;
 }) {
-  const executing = lastStage === 2 && !m.error;
   const op = m.ir?.op;
-  const route = m.error
-    ? 'Execution stopped at an invalid operation.'
-    : lastStage < 0
-      ? 'Next: memory sends the instruction at address 00 to control.'
-      : lastStage === 0
-        ? `M → CC: fetch ${textInstruction(m.ir!)} from address ${m.irAddress}. The counter now points to ${m.pc}; the fetched instruction still has to execute.`
-        : lastStage === 1
-          ? `CC decodes ${textInstruction(m.ir!)} and determines the operation and any address it needs. No operand or result moves during this teaching step.`
-          : op === 'READ'
-            ? `M[${m.ir!.address}] → ICA; previous ICA → JCA. The addressed number moves into arithmetic; memory keeps its value.`
-            : op === 'WRITE'
-              ? `OCA → M[${m.ir!.address}]. The calculated result replaces the number at this memory address.`
-              : op === 'OUT'
-                ? `M[${m.ir!.address}] → O. The stored number is sent outside the machine; OCA is a different storage location.`
-                : op === 'JMP'
-                  ? `CC changes the program counter to ${m.pc}. The next fetch will use this address; no arithmetic value moves.`
-                  : op === 'HALT'
-                    ? 'CC stops execution. Memory and registers retain their values.'
-                    : `JCA and ICA → OCA. ${op} produces a result inside arithmetic. Memory has not been updated.`;
-  const active = (part: string) => {
-    if (m.error || lastStage < 0) return false;
-    if (lastStage === 0) return part === 'memory' || part === 'control';
-    if (lastStage === 1 || op === 'JMP' || op === 'HALT')
-      return part === 'control';
-    if (op === 'OUT') return part === 'memory' || part === 'output';
-    return (
-      part === 'arithmetic' ||
-      ((op === 'READ' || op === 'WRITE') && part === 'memory')
-    );
-  };
-  const addr = m.irAddress ?? 0;
-  const purpose =
-    addr <= 3
-      ? 'Combine a and b, then save the intermediate result at address 17.'
-      : addr <= 7
-        ? 'Read the intermediate result and c, calculate the final result, and save it at address 20.'
-        : addr === 8
-          ? 'Send the saved answer to the output organ.'
-          : 'Stop after the answer has been sent.';
+  const execute = lastStage === 2 && !m.error;
+  const fetch = lastStage === 0 && !m.error;
+  const decode = lastStage === 1 && !m.error;
+  const arithmetic = execute && ['ADD', 'SUB', 'MUL'].includes(op ?? '');
+  const edge = (active: boolean) => `flow-edge ${active ? 'active' : ''}`;
+  const node = (active: boolean) => `flow-node ${active ? 'active' : ''}`;
   return (
-    <section className="flow-context" aria-label="Live instruction flow">
-      <div className="flow-heading">
-        <div>
-          <h3>Instruction flow</h3>
-          <p>
-            <strong>Program context:</strong> {purpose} The highlighted path
-            shows what the current instruction actually does, including any
-            edits.
-          </p>
-        </div>
-        <span className="flow-current">
-          {m.ir
-            ? `Address ${String(addr).padStart(2, '0')} · ${textInstruction(m.ir)}`
-            : 'Program loaded · ready to fetch'}
-        </span>
-      </div>
-      <div
-        className="flow-scroll"
-        tabIndex={0}
-        role="region"
-        aria-label="Flow diagram; scroll horizontally on narrow screens"
+    <section className="compact-flow" aria-label="Live instruction flow">
+      <h3>Instruction flow</h3>
+      <svg
+        viewBox="0 0 350 325"
+        className="compact-map"
+        role="img"
+        aria-label={`Highlighted operation: ${m.error ? 'error' : lastStage < 0 ? 'ready' : fetch ? 'fetch to control' : decode ? 'decode in control' : op}`}
       >
-        <svg
-          className="flow-map"
-          viewBox="0 0 820 250"
-          role="img"
-          aria-label={route}
+        <defs>
+          <marker
+            id="flow-arrow"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M0 0 L10 5 L0 10Z" fill="context-stroke" />
+          </marker>
+        </defs>
+        <path
+          className={edge(fetch)}
+          d="M65 130 V45 H115"
+          markerEnd="url(#flow-arrow)"
+        />
+        <text x="22" y="92">
+          fetch
+        </text>
+        <path
+          className={`${edge(decode)} control`}
+          d="M235 45 H285 V130"
+          markerEnd="url(#flow-arrow)"
+        />
+        <text x="273" y="92">
+          control
+        </text>
+        <path
+          className={edge(execute && op === 'READ')}
+          d="M130 151 H220"
+          markerEnd="url(#flow-arrow)"
+        />
+        <text x="175" y="143" textAnchor="middle">
+          READ
+        </text>
+        <path
+          className={edge(execute && op === 'WRITE')}
+          d="M220 195 H130"
+          markerEnd="url(#flow-arrow)"
+        />
+        <text x="175" y="216" textAnchor="middle">
+          WRITE
+        </text>
+        <path
+          className={edge(execute && op === 'OUT')}
+          d="M65 220 V273 H115"
+          markerEnd="url(#flow-arrow)"
+        />
+        <text x="24" y="251">
+          OUT
+        </text>
+        <g
+          className={node(
+            fetch || decode || (execute && (op === 'JMP' || op === 'HALT')),
+          )}
         >
-          <defs>
-            <marker
-              id="flow-arrow"
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              markerWidth="7"
-              markerHeight="7"
-              orient="auto-start-reverse"
-            >
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" />
-            </marker>
-          </defs>
-          <path
-            className={`flow-edge ${lastStage === 0 ? 'active' : ''}`}
-            d="M 225 93 H 300"
-            markerEnd="url(#flow-arrow)"
-          />
-          <text x="260" y="77" textAnchor="middle">
-            fetch
+          <rect x="115" y="15" width="120" height="60" rx="7" />
+          <text x="175" y="40" textAnchor="middle" className="flow-node-title">
+            CC
           </text>
-          <path
-            className={`flow-edge control ${lastStage === 1 ? 'active' : ''}`}
-            d="M 510 93 H 585"
-            markerEnd="url(#flow-arrow)"
-          />
-          <text x="548" y="77" textAnchor="middle">
-            direct
+          <text x="175" y="61" textAnchor="middle">
+            Control
           </text>
-          <path
-            className={`flow-edge ${executing && op === 'READ' ? 'active' : ''}`}
-            d="M 120 45 V 24 H 695 V 45"
-            markerEnd="url(#flow-arrow)"
-          />
-          <text x="405" y="16" textAnchor="middle">
-            READ: memory → ICA (previous ICA → JCA)
+        </g>
+        <g
+          className={node(
+            fetch || (execute && ['READ', 'WRITE', 'OUT'].includes(op ?? '')),
+          )}
+        >
+          <rect x="10" y="130" width="120" height="90" rx="7" />
+          <text x="70" y="165" textAnchor="middle" className="flow-node-title">
+            M
           </text>
-          <path
-            className={`flow-edge ${executing && op === 'WRITE' ? 'active' : ''}`}
-            d="M 695 140 V 165 H 120 V 140"
-            markerEnd="url(#flow-arrow)"
-          />
-          <text x="405" y="185" textAnchor="middle">
-            WRITE: OCA → memory
+          <text x="70" y="188" textAnchor="middle">
+            Memory
           </text>
-          <path
-            className={`flow-edge ${executing && op === 'OUT' ? 'active' : ''}`}
-            d="M 70 140 V 222 H 300"
-            markerEnd="url(#flow-arrow)"
-          />
-          <text x="170" y="213" textAnchor="middle">
-            OUT: memory → output
+        </g>
+        <g
+          className={node(
+            arithmetic || (execute && ['READ', 'WRITE'].includes(op ?? '')),
+          )}
+        >
+          <rect x="220" y="130" width="120" height="90" rx="7" />
+          <text x="280" y="165" textAnchor="middle" className="flow-node-title">
+            CA
           </text>
-          {[
-            [
-              'memory',
-              15,
-              'M · Memory',
-              `Operand address: ${m.ir?.address ?? '—'}`,
-            ],
-            ['control', 300, 'CC · Control', `Next fetch address: ${m.pc}`],
-            [
-              'arithmetic',
-              585,
-              'CA · Arithmetic',
-              `JCA ${m.right ?? '—'}   ICA ${m.left ?? '—'}   OCA ${m.result ?? '—'}`,
-            ],
-          ].map(([key, x, label, detail]) => (
-            <g
-              key={key}
-              className={`flow-node ${active(String(key)) ? 'active' : ''}`}
-            >
-              <rect x={Number(x)} y="45" width="210" height="95" rx="8" />
-              <text
-                x={Number(x) + 105}
-                y="79"
-                textAnchor="middle"
-                className="flow-node-title"
-              >
-                {label}
-              </text>
-              <text x={Number(x) + 105} y="110" textAnchor="middle">
-                {detail}
-              </text>
-            </g>
-          ))}
-          <g className={`flow-node ${active('output') ? 'active' : ''}`}>
-            <rect x="300" y="199" width="210" height="46" rx="8" />
-            <text x="405" y="228" textAnchor="middle">
-              O · Output: {m.output ?? '—'}
-            </text>
-          </g>
-        </svg>
-      </div>
-      <p className="flow-route" aria-live="polite">
-        {route}
-      </p>
-      <p className="flow-legend">
-        Solid arrows carry instructions or numbers. The dashed arrow represents
-        control; this simplified map groups the control signals to the organs.
-        Highlighting marks the movement just completed. Previous step rewinds
-        the teaching model, not the historical machine.
-      </p>
+          <text x="280" y="188" textAnchor="middle">
+            Arithmetic
+          </text>
+        </g>
+        <g className={node(execute && op === 'OUT')}>
+          <rect x="115" y="245" width="120" height="60" rx="7" />
+          <text x="175" y="270" textAnchor="middle" className="flow-node-title">
+            O
+          </text>
+          <text x="175" y="291" textAnchor="middle">
+            Output
+          </text>
+        </g>
+      </svg>
+      <p className="compact-legend">Solid: information · Dashed: control</p>
+      <dl className="register-strip">
+        {[
+          ['JCA', m.right],
+          ['ICA', m.left],
+          ['OCA', m.result],
+          ['Output', m.output],
+        ].map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value ?? '—'}</dd>
+          </div>
+        ))}
+      </dl>
     </section>
   );
 }

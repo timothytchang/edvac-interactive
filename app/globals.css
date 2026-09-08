@@ -1317,3 +1317,194 @@ footer p {
   overflow-x: visible;
   min-width: 0;
 }
+
+/* One shared view: flow, memory, and the explanation of the current step. */
+.execution-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.compact-flow {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 14px;
+}
+.compact-flow h3 {
+  font: 24px var(--serif);
+  margin: 0 0 8px;
+}
+.compact-map {
+  display: block;
+  width: 100%;
+}
+.compact-map text {
+  font: 13px var(--sans);
+  fill: var(--ink);
+}
+.compact-map .flow-node-title {
+  font: 20px var(--serif);
+}
+.compact-legend {
+  font-size: 11px;
+  text-align: center;
+  color: var(--muted-foreground);
+  margin: 0 0 16px;
+}
+.register-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  margin: 0;
+}
+.register-strip div {
+  text-align: center;
+}
+.register-strip dt {
+  font-size: 12px;
+}
+.register-strip dd {
+  margin: 4px 0 0;
+  font: 23px var(--code);
+  color: var(--teal);
+}
+.execution-workbench .panel-top {
+  padding: 12px;
+}
+.execution-workbench .panel-top h3 {
+  font-size: 17px;
+}
+.execution-workbench .panel-top > span {
+  display: none;
+}
+.execution-workbench .memory-legend {
+  padding: 6px 10px;
+}
+.execution-workbench .memory-list {
+  padding: 4px;
+  max-height: 420px;
+  overflow: auto;
+}
+.execution-workbench .memory-row {
+  padding: 4px 7px;
+  min-height: 0;
+  height: 28px;
+  font-size: 12px;
+  grid-template-columns: 25px 1fr auto;
+}
+.execution-workbench .cell-role {
+  font-size: 10px;
+}
+.unused-toggle {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+.execution-workbench .explanation-panel {
+  padding: 18px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.execution-instruction {
+  display: grid;
+  gap: 6px;
+}
+.execution-instruction span {
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+.execution-instruction strong {
+  font: 22px var(--code);
+}
+.compact-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  margin: 16px 0;
+}
+.compact-counter strong {
+  font: 20px var(--code);
+}
+.execution-workbench .stage-track {
+  margin: 0 0 22px;
+  gap: 3px;
+}
+.execution-workbench .stage-track span {
+  font-size: 11px;
+  padding: 5px 2px;
+}
+.execution-workbench .explanation-panel h3 {
+  font: 26px var(--serif);
+  margin: 0 0 12px;
+}
+.execution-workbench .live-explanation {
+  font-size: 16px;
+  line-height: 1.65;
+  min-height: 0;
+}
+.address-details {
+  border-top: 1px solid var(--line);
+  margin-top: 22px;
+  padding-top: 12px;
+  font-size: 13px;
+}
+.address-details summary,
+.instruction-key-panel summary {
+  cursor: pointer;
+  color: var(--teal);
+}
+.address-details .tiny-title {
+  display: none;
+}
+.instruction-key-panel > summary {
+  font-size: 14px;
+}
+@media (max-width: 760px) {
+  .execution-workbench {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+  }
+  .execution-workbench .explanation-panel {
+    grid-column: 1/-1;
+  }
+  .compact-flow {
+    padding: 12px 8px;
+  }
+  .compact-flow h3 {
+    font-size: 20px;
+  }
+  .register-strip {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 12px;
+  }
+  .execution-workbench .memory-row {
+    grid-template-columns: 20px 1fr;
+    height: 28px;
+    font-size: 11px;
+  }
+  .execution-workbench .cell-role {
+    display: none;
+  }
+  .execution-workbench .memory-legend {
+    display: none;
+  }
+}
+.execution-workbench .explanation-panel {
+  display: block;
+  grid-column: auto;
+}
+@media (max-width: 760px) {
+  .execution-workbench .explanation-panel {
+    grid-column: 1/-1;
+  }
+}
+.execution-workbench .explanation-panel {
+  min-height: 0;
+}
