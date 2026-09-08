@@ -209,7 +209,7 @@ export default function Home() {
           <span className="brand-symbol">
             E<span>•</span>
           </span>
-          <span>COMPUTING, EXPLAINED</span>
+          <span>COMPUTING HISTORY</span>
         </a>
         <a className="source-link" href="#historical">
           <BookOpen size={16} />
@@ -220,16 +220,12 @@ export default function Home() {
         <div>
           <p className="eyebrow">1945 / THE STORED-PROGRAM IDEA</p>
           <h1>
-            Inside <em>EDVAC.</em>
+            <em>EDVAC</em> architecture
           </h1>
           <p className="intro">
-            How a machine reads instructions, moves numbers, and decides what
-            happens next.
+            Explore how the 1945 proposal organized memory, arithmetic, and
+            control to execute a stored program.
           </p>
-        </div>
-        <div className="edition">
-          AN INTERACTIVE FIELD GUIDE
-          <span>Logic first. One step at a time.</span>
         </div>
       </div>
       <Tabs value={lesson} onValueChange={changeLesson} className="lessons">
@@ -244,31 +240,34 @@ export default function Home() {
         <TabsContent value="0">
           <section className="opening-grid">
             <div className="lesson-copy">
-              <p className="eyebrow">01 / THE BIG PICTURE</p>
-              <h2>
-                The program becomes
-                <br />
-                something you <em>store.</em>
-              </h2>
+              <p className="eyebrow">01 / LOGICAL ORGANIZATION</p>
+              <h2>The stored program</h2>
               <p>
-                ENIAC’s original programs lived in cable connections and switch
-                settings. Changing the calculation could mean changing that
-                physical setup.
+                Programmers configured the original ENIAC through cable
+                connections and switch settings. The setup determined which
+                operations ran and how values moved between units. Changing the
+                procedure could therefore require changing those connections.
               </p>
               <p>
-                In the EDVAC proposal, the machine reads coded instructions from
-                memory. Load a new sequence, and the same hardware performs a
-                new calculation.
+                The EDVAC proposal placed coded instructions in the same memory
+                used for numbers. Central control would read each instruction
+                and direct a shared arithmetic unit. Loading a different
+                instruction sequence changed the calculation without
+                reconnecting those units.
               </p>
               <p className="subtle">
-                Some relay calculators already read instructions from tape, one
-                at a time. Here the program first enters memory, where control
-                can revisit instructions by address.
+                Some relay calculators already read and executed instructions
+                from tape one at a time. Loading instructions into addressable
+                memory let control select a different part of the program
+                without moving through the intervening tape.
               </p>
               <div className="callout">
-                <span className="tiny-title">THE QUESTION TO KEEP ASKING</span>
-                Is this number an instruction to follow, an address to visit, or
-                a value to calculate with?
+                <span className="tiny-title">
+                  Instructions, addresses, and values
+                </span>
+                An instruction specifies an operation. An address identifies a
+                memory location. The value at that location can be an input to
+                the calculation or a result stored for later use.
               </div>
               <Button className="primary" onClick={() => changeLesson('1')}>
                 Follow a calculation <ArrowRight size={17} />
@@ -343,25 +342,27 @@ export default function Home() {
           <section className="concept-strip">
             <div>
               <span>01</span>
-              <h3>The hardware idea</h3>
+              <h3>EDVAC hardware paradigm</h3>
               <p>
-                Electronic computation and a large, fast memory holding binary
-                information.
+                The proposed hardware combined electronic computation with a
+                large, fast memory holding binary information.
               </p>
             </div>
             <div>
               <span>02</span>
-              <h3>The architecture idea</h3>
+              <h3>Von Neumann architecture paradigm</h3>
               <p>
-                Centralized arithmetic and control, connected to shared memory.
+                The logical design centralized arithmetic and control and
+                connected them to a shared memory for instructions and data.
               </p>
             </div>
             <div>
               <span>03</span>
-              <h3>The code idea</h3>
+              <h3>Modern code paradigm</h3>
               <p>
-                Encoded operations, addresses, and a repeating fetch–execute
-                cycle.
+                Instruction codes specified operations and their operands. The
+                control organ read and executed these codes in sequence, with
+                branches allowing the sequence to change.
               </p>
             </div>
           </section>
@@ -369,14 +370,18 @@ export default function Home() {
         <TabsContent value="1">
           <div className="workbench-heading">
             <div>
-              <p className="eyebrow">02 / WATCH THE MACHINE WORK</p>
-              <h2>
-                A small program. <em>Every movement.</em>
-              </h2>
+              <p className="eyebrow">02 / INSTRUCTION EXECUTION</p>
+              <h2>Fetch, decode, and execute</h2>
               <p>
                 Calculate <strong>{calculation}</strong> with a ={' '}
                 {loadedValues[0]}, b = {loadedValues[1]}, c = {loadedValues[2]}.
                 Use <strong>Step</strong> to make one movement at a time.
+              </p>
+              <p className="register-intro">
+                ICA, JCA, and OCA are registers: small storage circuits inside
+                the arithmetic organ. READ places a value in ICA and shifts its
+                previous value into JCA. Arithmetic writes its result to OCA; a
+                separate WRITE instruction copies that result into memory.
               </p>
             </div>
             <span className="model-label">FIRST DRAFT · TEACHING MODEL</span>
@@ -541,7 +546,7 @@ export default function Home() {
               </div>
             </section>
             <aside className="explanation-panel">
-              <span className="eyebrow">WHAT JUST HAPPENED</span>
+              <span className="eyebrow">Current operation</span>
               <div className="step-number">
                 {m.halted
                   ? '■'
@@ -608,16 +613,13 @@ export default function Home() {
         <TabsContent value="2">
           <section className="experiment-grid">
             <div className="lesson-copy">
-              <p className="eyebrow">03 / YOUR TURN</p>
-              <h2>
-                Same hardware.
-                <br />
-                <em>A different calculation.</em>
-              </h2>
+              <p className="eyebrow">03 / PROGRAM MODIFICATION</p>
+              <h2>Program and input changes</h2>
               <p>
-                First change the input numbers. Then switch programs. Notice
-                what changes in memory—and what stays the same about the
-                machine.
+                Changing the input numbers preserves the sequence of operations.
+                Switching programs changes that sequence while reusing the same
+                memory, control, and arithmetic units. Load either example below
+                to observe the difference.
               </p>
               <div className="input-values">
                 {values.map((v, i) => (
@@ -670,8 +672,8 @@ export default function Home() {
               </Button>
             </div>
             <div className="experiment-card">
-              <span className="eyebrow">BEFORE YOU RUN IT</span>
-              <h3>Predict the output.</h3>
+              <span className="eyebrow">OUTPUT PREDICTION</span>
+              <h3>Expected result</h3>
               <p>
                 What should the machine produce for{' '}
                 <strong>
@@ -714,7 +716,7 @@ export default function Home() {
                 {feedback}
               </p>
               <hr />
-              <h3>Try editing an instruction.</h3>
+              <h3>Arithmetic instruction</h3>
               <p>
                 Replace ADD or MUL at address 02. This loads a fresh program
                 with your selected inputs.
@@ -744,7 +746,7 @@ export default function Home() {
                 historical binary instruction codes.
               </p>
               <hr />
-              <h3>Make the counter jump.</h3>
+              <h3>Branch instruction</h3>
               <p>
                 Replace address 02 with JMP 04. It skips the arithmetic at 02
                 and the write at 03. Predict the result before running.
@@ -772,11 +774,8 @@ export default function Home() {
         <TabsContent value="3">
           <section className="delay-section">
             <div className="lesson-copy">
-              <p className="eyebrow">04 / A PHYSICAL CONSTRAINT</p>
-              <h2>
-                Memory had a<br />
-                <em>waiting time.</em>
-              </h2>
+              <p className="eyebrow">04 / PHYSICAL STORAGE</p>
+              <h2>Delay-line memory</h2>
               <p>
                 The later built EDVAC used mercury acoustic delay lines.
                 Electrical signals became sound pulses, traveled through
@@ -784,8 +783,12 @@ export default function Home() {
                 pulses were regenerated and sent through again.
               </p>
               <p>
-                A word became available when it reached the readout. Select a
-                word below, then advance the circulation to see the wait.
+                A word is a fixed-size group of bits stored and accessed
+                together. In a delay line, a word becomes available when its
+                pulses reach the receiving end. Select a word below, then
+                advance circulation to observe the wait. Each step represents
+                one word time: the interval needed for one complete word to pass
+                the readout.
               </p>
             </div>
             <div className="delay-card">
@@ -851,8 +854,8 @@ export default function Home() {
             </div>
           </section>
           <div className="takeaway">
-            <span className="eyebrow">ARCHITECTURE MEETS PHYSICS</span>
-            <h3>Where an instruction lives can affect when it is available.</h3>
+            <span className="eyebrow">MEMORY ACCESS</span>
+            <h3>Address placement and access time</h3>
             <p>
               The First Draft’s logical view abstracts away some physical
               details. Delay-line storage makes the cost of reading an address
@@ -866,14 +869,15 @@ export default function Home() {
       <footer id="historical">
         <div>
           <p className="eyebrow">HISTORICAL NOTES / MODEL BOUNDARIES</p>
-          <h3>Inspired by EDVAC. Simplified for understanding.</h3>
+          <h3>Historical design and teaching model</h3>
           <p>
             This lesson follows the 1945 <em>First Draft</em> as explained by
             Haigh and Ceruzzi (pp. 15–17): five logical organs, 32-bit words,
             ICA/JCA/OCA working storage, and an incrementing program counter.
             The later built EDVAC used 44-bit words and four-address
-            instructions. Its specifications must not be read back into the
-            proposal.
+            instructions. The main simulator follows the earlier proposal; the
+            delay-line activity illustrates storage associated with the built
+            machine.
           </p>
           <p>
             This lab uses 24 labeled cells, small signed integers, readable
